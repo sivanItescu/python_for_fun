@@ -3,7 +3,7 @@ from flask import Flask, jsonify, request
 from flask_restful import Resource, Api
 from flask_mongoengine import MongoEngine
 import mongoengine as me
-# from marshmallow_mongoengine import ModelSchema
+from marshmallow_mongoengine import ModelSchema
 import datetime
 
 app = Flask(__name__)
@@ -24,60 +24,41 @@ class CV(db.Document):
     id = db.IntField(primary_key=True, default=1)
     name = db.StringField()
 
-class Job(db.Document):
-    id = db.IntField(primary_key=True, default=1)
-    title = db.StringField()
-    # description = me.StringField()
-    # location = me.StringField()
-    # is_open = me.BooleanField()
-    # last_time_opened = me.DateTimeField(default=datetime.datetime.utcnow)
-    #
-    # def __repr__(self):
-    #     return '<Job(title = {self.title!r})>'.format(self=self)
-
-
-# class JobSchema(ModelSchema):
-#     class Meta:
-#         model = Job
-
-
-# job_schema = JobSchema()
-
-# first_job = Job(id=123456,
-#                 title='System analyzer',
-                # description='System analyzer in a global company',
-                # location='Tel-Aviv',
-                # is_open=True).save()
-
-first_job = Job(id=123456, title='System analyzer').save()
-second_job = Job(id=123457, title='Python developer').save()
 cv1 = CV(id =368, name='Sivan Itescu').save()
-# print(first_job)
-# dump_data = job_schema.dump(first_job).data
-#
-# job_schema.load(dump_data).data
 
-# for job in Job.objects:
-#     print(job.title)
-# print(Job.objects)
-# print(type(Job.objects))
-# jobs = {}
+class Job(me.Document):
+    id = me.IntField(primary_key=True, default=1)
+    title = me.StringField()
+    description = me.StringField()
+    location = me.StringField()
+    is_open = me.BooleanField()
+    last_time_opened = me.DateTimeField(default=datetime.datetime.utcnow)
+
+
+class JobSchema(ModelSchema):
+    class Meta:
+        model = Job
+
+
+job_schema = JobSchema()
 
 
 class JobsResource(Resource):
-    def get(self):
-        result = {}
-        for job in Job.objects:
-            # print(j.title)
-            result[job.id] = job.title
-        return result
+    @classmethod
+    def get(cls):
+        jobs = []
+        for loaded_job in Job.objects:
+            jobs.append(job_schema.dump(loaded_job))
+        return jobs
+
 
 class JobResource(Resource):
     # def get(self, job_id):
     #     return {job_id: jobs[job_id]}
 
-    def put(self,job_id):
-        put_job = Job(id=job_id, title=request.form['job_title']).save()
+    @classmethod
+    def put(cls,job_id):
+        Job(id=job_id, title=request.form['job_title']).save()
         return {job_id: request.form['job_title']}, 201
 
 

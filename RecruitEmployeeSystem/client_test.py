@@ -2,8 +2,6 @@ import requests
 
 BASE = "http://127.0.0.1:5000/"
 
-# response = requests.get(BASE)
-# print(response.json())
 
 response = requests.put(BASE+'/jobs/1', data={'job_title': 'Senior SW Engineer at Goggle'})
 print(response.json())
